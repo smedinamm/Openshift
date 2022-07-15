@@ -1,0 +1,27 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: example
+  namespace: app1
+spec:
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: console
+      protocol: TCP
+      port: 8076
+      targetPort: 7600
+      nodePort: 32455
+    - name: traffic
+      protocol: TCP
+      port: 8078
+      targetPort: 7800
+      nodePort: 32545
+  internalTrafficPolicy: Cluster
+  allocateLoadBalancerNodePorts: true
+  type: LoadBalancer
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app: calculadora
