@@ -1,3 +1,7 @@
 # rm -r /opt/registry/data/docker/registry/v2/repositories/{appc-dev,cp,cpopen,ibmcom}
 # podman exec mirror-registry bin/registry garbage-collect /etc/docker/registry/config.yml | grep "blob eligible for deletion:"
 # podman restart mirror-registry 
+
+
+# podman generate systemd --new --files --name my-pod
+# systemctl enable pod-my-pod.service
