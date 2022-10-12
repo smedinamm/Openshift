@@ -4,4 +4,5 @@
 
 
 # podman generate systemd --new --files --name my-pod
+# mover archivo /etc/systemd/system
 # systemctl enable pod-my-pod.service
