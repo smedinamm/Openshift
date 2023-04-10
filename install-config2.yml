@@ -1,0 +1,50 @@
+apiVersion: v1
+baseDomain: acm.com
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+  platform: {}
+  replicas: 3
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: 3
+metadata:
+  creationTimestamp: null
+  name: test1
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 10.0.0.0/16
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  azure:
+    baseDomainResourceGroupName: lab_op2
+    cloudName: AzurePublicCloud
+    outboundType: Loadbalancer
+    region: eastus
+publish: External
+pullSecret: '{"auths":{"cloud.openshift.com":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K29jbV9hY2Nlc3NfYTQ5YmEwZDM0MzBhNDc3YWJjY2I4YzU3YzE4ZWVhNWQ6VVdWV1laTDlGMlI2TUNJSVNENVFGNUs1N08zVEE0Ulc2RUFD
+MkZXR0xXRjYwTlBHQ0EzU1VPQ1AwVTA2U1hXSw==","email":"smedina@gbm.net"},"quay.io":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K29jbV9hY2Nlc3NfYTQ5YmEwZDM0MzBhNDc3YWJjY2I4YzU3YzE4ZWVhNWQ6VVdWV1laTDlGMl
+I2TUNJSVNENVFGNUs1N08zVEE0Ulc2RUFDMkZXR0xXRjYwTlBHQ0EzU1VPQ1AwVTA2U1hXSw==","email":"smedina@gbm.net"},"registry.connect.redhat.com":{"auth":"fHVoYy1wb29sLTI3NzM2YTJlLWIxOGItNDI1YS1iNDM4LTVm
+NzVlZDgxY2VkZDpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTBORGs1TURFMU5qWXpNR0kwWmpZMlltVmxZak5pTm1SaU5tVXpPRE01TWlKOS5ucmlySnVXaklhQTRPcWpOckdLNXRlNVIzUHJuT0wtWmlSVk5nZk94SllGVlBWZDJIRWlWam
+p0N1pCNjREYkI5Zl8xYm5mUkgwbGotVS0tdW0xMEpoa05iOVhDNnBXTGw2VnZSVWZQV0ZVNVJ6QkpDa2h2TWZRQ1B1QnFZUmJYMFlCOE40WlJsQjBYbDJzMUhOc20zbnF6QkpVZHhFbGVDemMtVjJwMEFIM29ibDh4b2dfWmMzQzN5VndZU3NnQnUyZTdN
+bDBLZHpqLVRneVdjTDJsZzRIYXpVV3BsWHg4XzRtUGpZQWdvOVRGQ2FEbEVscDFDeU5KbXl3STlyNEFnMUtJQjU3VTZBdURRN2Z1M2hmZWtGMXFnRE0xbGhTT0FaX1puYzZRS093ZW5yNXprdGxOSGtJYmlydWMxVFh4cWU0Zm1EcF8xNXIzcDFxNUkyWE
+pOTlBKRXZOVjZfcC1JZURQR3hqaXhmR1hVamNOcDNaU05zaExBUkItOWk4cExLMzRvMzJoY191cWppREdralpNTnhLRmVHNklQNnE4eHZELVdOWXZzckl5MnZCNExKLXVTMV96eU1jekxoVE1DN0ZlSEptcXNlSFlaRW1sZDB1TW9wVXdLaWJyLWFITlF3
+akdYYVRkYU5XTXpVRTRzV1p2SUtyck5ld0pvNUsySEtPeGd5Yi1oV0xJbk84aDBEV1c2V2JQaTlVMHhhZmdxLTU5UFhYbVBIdFBTZUMxNW5CZEJYekRqQ0ZGMkc1S3VDWFJrMVAxWEFMNkZrdEVPaEl0OF95a1dLV0JiOE1pRllCS0xvYTRfSnRTci1QNW
+tLajdScl9IcWNZMnpjdktFb2VuVjhqYnhJb3Jta09tWTl3NW0taFU1VWNEb3NGTWdjNlB1SFJGcnVldw==","email":"smedina@gbm.net"},"registry.redhat.io":{"auth":"fHVoYy1wb29sLTI3NzM2YTJlLWIxOGItNDI1YS1iNDM4LTVmN
+zVlZDgxY2VkZDpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTBORGs1TURFMU5qWXpNR0kwWmpZMlltVmxZak5pTm1SaU5tVXpPRE01TWlKOS5ucmlySnVXaklhQTRPcWpOckdLNXRlNVIzUHJuT0wtWmlSVk5nZk94SllGVlBWZDJIRWlWamp
+0N1pCNjREYkI5Zl8xYm5mUkgwbGotVS0tdW0xMEpoa05iOVhDNnBXTGw2VnZSVWZQV0ZVNVJ6QkpDa2h2TWZRQ1B1QnFZUmJYMFlCOE40WlJsQjBYbDJzMUhOc20zbnF6QkpVZHhFbGVDemMtVjJwMEFIM29ibDh4b2dfWmMzQzN5VndZU3NnQnUyZTdNb
+DBLZHpqLVRneVdjTDJsZzRIYXpVV3BsWHg4XzRtUGpZQWdvOVRGQ2FEbEVscDFDeU5KbXl3STlyNEFnMUtJQjU3VTZBdURRN2Z1M2hmZWtGMXFnRE0xbGhTT0FaX1puYzZRS093ZW5yNXprdGxOSGtJYmlydWMxVFh4cWU0Zm1EcF8xNXIzcDFxNUkyWEp
+OTlBKRXZOVjZfcC1JZURQR3hqaXhmR1hVamNOcDNaU05zaExBUkItOWk4cExLMzRvMzJoY191cWppREdralpNTnhLRmVHNklQNnE4eHZELVdOWXZzckl5MnZCNExKLXVTMV96eU1jekxoVE1DN0ZlSEptcXNlSFlaRW1sZDB1TW9wVXdLaWJyLWFITlF3a
+kdYYVRkYU5XTXpVRTRzV1p2SUtyck5ld0pvNUsySEtPeGd5Yi1oV0xJbk84aDBEV1c2V2JQaTlVMHhhZmdxLTU5UFhYbVBIdFBTZUMxNW5CZEJYekRqQ0ZGMkc1S3VDWFJrMVAxWEFMNkZrdEVPaEl0OF95a1dLV0JiOE1pRllCS0xvYTRfSnRTci1QNWt
+LajdScl9IcWNZMnpjdktFb2VuVjhqYnhJb3Jta09tWTl3NW0taFU1VWNEb3NGTWdjNlB1SFJGcnVldw==","email":"smedina@gbm.net"}}}'
+sshKey: |
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFIcTAOU5iZt62KaR9v1ZcVo6XtwyBJ7TEyNwTfVx3JB azureuser@BastionOp
