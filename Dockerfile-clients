@@ -1,0 +1,23 @@
+##Descargamos una versión concreta de UBUNTU, a través del tag
+FROM ubuntu:20.04 
+MAINTAINER gbm 
+##Actualizamos el sistema
+RUN apt-get update
+##Instalamos nginx
+RUN apt-get install -y nginx
+##Arrancamos NGINX a través de ENTRYPOINT para que no pueda ser modificado en la creación del contenedor
+ENTRYPOINT ["/usr/sbin/nginx", "-g", "daemon off;"]
+##Exponemos el Puerto 80
+EXPOSE 80
+##creacion archivo kubeconfig
+RUN mkdir /.kube
+RUN > /.kube/config
+RUN chmod -R 777 /.kube/config
+##instalacion Curl
+RUN apt-get install -y curl
+RUN apt-get install -y telnet
+RUN apt-get install -y wget
+RUN wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable-4.8/openshift-client-linux.tar.gz   
+RUN echo $PATH
+RUN tar -xvf openshift-client-linux.tar.gz -C /bin oc kubectl  
+RUN oc version
