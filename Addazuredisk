@@ -1,0 +1,49 @@
+lsblk -o NAME,HCTL,SIZE,MOUNTPOINT | grep -i "sd"
+
+sda     0:0:0:0       30G
+├─sda1              29.9G /
+├─sda14                4M
+└─sda15              106M /boot/efi
+sdb     0:0:0:1       16G
+└─sdb1                16G /mnt
+sdc     1:0:0:0        2T
+
+azureuser@Bastion:~$ sudo parted /dev/sdc --script mklabel gpt mkpart xfspart xfs 0% 100%
+azureuser@Bastion:~$ lsblk -o NAME,HCTL,SIZE,MOUNTPOINT | grep -i "sd"
+sda     0:0:0:0       30G
+├─sda1              29.9G /
+├─sda14                4M
+└─sda15              106M /boot/efi
+sdb     0:0:0:1       16G
+└─sdb1                16G /mnt
+sdc     1:0:0:0        2T
+└─sdc1                 2T
+azureuser@Bastion:~$ sudo mkfs.xfs /dev/sdc1
+meta-data=/dev/sdc1              isize=512    agcount=4, agsize=131071872 blks
+         =                       sectsz=4096  attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=0
+         =                       reflink=1    bigtime=0 inobtcount=0
+data     =                       bsize=4096   blocks=524287488, imaxpct=5
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   blocks=255999, version=2
+         =                       sectsz=4096  sunit=1 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+Discarding blocks...Done.
+
+azureuser@Bastion:~$ sudo partprobe /dev/sdc1
+azureuser@Bastion:~$ sudo mount /dev/sdc1 /home/azureuser/mirror
+
+azureuser@Bastion:~$ sudo blkid
+/dev/sdb1: UUID="ff7ea6d3-ccde-4f44-a6cf-3fbd9bba6654" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="508121a7-01"
+/dev/sda15: LABEL_FATBOOT="UEFI" LABEL="UEFI" UUID="2E9D-D454" BLOCK_SIZE="512" TYPE="vfat" PARTUUID="395fd9a6-2c48-4f70-94d7-b5f7a9bf0508"
+/dev/sda1: LABEL="cloudimg-rootfs" UUID="5cc078c5-6781-45b9-89d8-4f140be9bb50" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="02d18859-0652-461b-a0d2-4006deafd1ae"
+/dev/loop1: TYPE="squashfs"
+/dev/loop2: TYPE="squashfs"
+/dev/loop0: TYPE="squashfs"
+/dev/sdc1: UUID="74ed21c4-a3ca-411e-889c-e7eea20b9b92" BLOCK_SIZE="4096" TYPE="xfs" PARTLABEL="xfspart" PARTUUID="b7f033e7-892b-4d88-bffd-84a4dd01808a"
+/dev/sda14: PARTUUID="632ed5c6-f26c-4bac-8149-f5856a42a7e5"
+
+azureuser@Bastion:~$ sudo vi /etc/fstab
+UUID=74ed21c4-a3ca-411e-889c-e7eea20b9b92   /home/azureuser/mirror   xfs   defaults,nofail   1   2
+
