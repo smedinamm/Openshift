@@ -1,6 +1,13 @@
 # configuracion Inicial
 
 sudo apt install apache2-utils
+sudo apt  install jq
+sudo apt install podman
+
+sudo yum repolist
+sudo dnf list podman
+sudo dnf install -y podman
+sudo dnf install httpd-tools
 
 export HOME_MIRROR=/home/azureuser/mirror
 
@@ -38,6 +45,8 @@ DNS.4 = registry.privateocp.gbm.net
 DNS.5 = bastion.privateocp.gbm.net
 IP.1 = 127.0.0.1
 EOF
+
+ssh-keygen -t ed25519 -N ''
 
 cd $HOME_MIRROR/registry/certs
 openssl req -newkey rsa:4096 -nodes -sha256 -keyout server.key -x509 -days 3650 -out server.crt -config cert.conf -extensions v3_req
