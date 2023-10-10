@@ -1,9 +1,9 @@
 # configuracion Inicial
-
+#ubuntu
 sudo apt install apache2-utils
 sudo apt  install jq
 sudo apt install podman
-
+#RHEL
 sudo yum repolist
 sudo dnf list podman
 sudo dnf install -y podman
@@ -13,6 +13,10 @@ export HOME_MIRROR=/home/azureuser/mirror
 
 sudo mkdir -p $HOME_MIRROR/registry/{auth,certs,data}
 sudo chown -R azureuser:azureuser $HOME_MIRROR
+
+cat pullsecret.txt | jq . > pull-secret.json
+cat pull-secret.json
+podman login --authfile pull-secret.json bastion.privateocp.gbm.net:5000
 
 cat << 'EOF' > $HOME_MIRROR/registry/certs/cert.conf
 [ req ]
@@ -51,8 +55,12 @@ ssh-keygen -t ed25519 -N ''
 cd $HOME_MIRROR/registry/certs
 openssl req -newkey rsa:4096 -nodes -sha256 -keyout server.key -x509 -days 3650 -out server.crt -config cert.conf -extensions v3_req
 htpasswd -bBc $HOME_MIRROR/registry/auth/htpasswd admin passw0rd
+#ubuntu
 sudo cp $HOME_MIRROR/registry/certs/server.crt /usr/local/share/ca-certificates/server.crt
 sudo update-ca-certificates
+#RHEL
+sudo cp /data/registry/certs/server.crt /etc/pki/ca-trust/source/anchors/
+sudo update-ca-trust
 
 podman run --name mirror-registry -p 5000:5000 -v $HOME_MIRROR/registry/data:/var/lib/registry:z -v $HOME_MIRROR/registry/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v $HOME_MIRROR/registry/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/server.crt -e REGISTRY_HTTP_TLS_KEY=/certs/server.key -d  docker.io/library/registry:2
 podman login --authfile pull-secret.json bastion.privateocp.gbm.net:5000
