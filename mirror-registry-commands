@@ -92,7 +92,9 @@ oc adm release extract -a ${LOCAL_SECRET_JSON} --command=openshift-install "${LO
 
 cat pull-secret.json | jq . -c
 
-
+mkdir clustermdm
+cp install-config.yaml clustermdm
+./openshift-install create cluster --dir=clustermdm --log-level=debug
 
 
 
