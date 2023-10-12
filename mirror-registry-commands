@@ -71,14 +71,6 @@ podman login --authfile pull-secret.json bastion.privateocp.gbm.net:5000 --usern
 cp pull-secret.json $XDG_RUNTIME_DIR/containers/auth.json
 REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json
 
-#OCP_RELEASE=4.12.19
-#LOCAL_REGISTRY='bastion.privateocp.gbm.net:5000'
-#LOCAL_REPOSITORY='ocp4/openshift4'
-#PRODUCT_REPO='openshift-release-dev'
-#LOCAL_SECRET_JSON='/home/azureuser/mirror-new/pull-secret.json'
-#RELEASE_NAME="ocp-release"
-#ARCHITECTURE='x86_64'
-
 OCP_RELEASE=4.12.35
 LOCAL_REGISTRY='bastion.privateocp.gbm.net:5000'
 LOCAL_REPOSITORY='ocp4/openshift4'
@@ -96,12 +88,18 @@ mkdir clustermdm
 cp install-config.yaml clustermdm
 ./openshift-install create cluster --dir=clustermdm --log-level=debug
 
-
-
-
-
+podman login registry.redhat.io
 
 curl -u admin:passw0rd -k https://localhost:5000/v2/_catalog | jq . | less
+
+export MIRROR_REGISTRY_DNS=bastion.privateocp.gbm.net:5000
+export AUTH_FILE=/home/azureuser/pull-secret.json
+
+oc adm catalog mirror registry.redhat.io/redhat/redhat-operator-index:v4.12 ${MIRROR_REGISTRY_DNS}/olm-mirror --registry-config=${AUTH_FILE} --insecure
+
+
+
+
 
 
 
