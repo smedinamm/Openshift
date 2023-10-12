@@ -39,6 +39,7 @@ platform:
     cloudName: AzurePublicCloud
     outboundType: Loadbalancer
     region: eastus
+    networkResourceGroupName: ocptest
     virtualNetwork: vnet-ocp
     controlPlaneSubnet: subnet-master
     computeSubnet: subnet-worker
