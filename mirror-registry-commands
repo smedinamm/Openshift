@@ -144,5 +144,3 @@ curl -u admin:admin -k https://ansible.apicdev.os.qa.bi.com.gt:5000/v2/_catalog
 **********************
 #mirror
 oc mirror init --registry example.com/mirror/oc-mirror-metadata > imageset-config.yaml
-oc mirror --config=./imageset-config.yaml docker://bastion.privateocp.gbm.net:5000 
-./openshift-install create cluster --dir=clustermdm --log-level=debug
