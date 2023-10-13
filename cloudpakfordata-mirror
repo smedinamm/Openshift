@@ -1,0 +1,86 @@
+mkdir -p $HOME/cdp-cli
+cd $HOME/cdp-cli
+wget https://github.com/IBM/cpd-cli/releases/download/v13.0.3/cpd-cli-linux-EE-13.0.3.tgz
+tar -xvf cpd-cli-linux-EE-13.0.3.tgz
+export PATH=$HOME/cdp-cli/cpd-cli-linux-EE-13.0.3-40:$PATH
+export CPD_CLI_MANAGE_WORKSPACE=$HOME/cpd-cli-workspace
+
+#===============================================================================
+# Cloud Pak for Data installation variables
+#===============================================================================
+# ------------------------------------------------------------------------------
+# Client workstation 
+# ------------------------------------------------------------------------------
+# Set the following variables if you want to override the default behavior of the Cloud Pak for Data CLI.
+#
+# To export these variables, you must uncomment each command in this section.
+
+# export CPD_CLI_MANAGE_WORKSPACE=<enter a fully qualified directory>
+# export OLM_UTILS_LAUNCH_ARGS=<enter launch arguments>
+# ------------------------------------------------------------------------------
+# Cluster
+# ------------------------------------------------------------------------------
+export OCP_URL=https://api.clustername.private.gbmtest.com:6443
+export OPENSHIFT_TYPE=self-managed
+export IMAGE_ARCH=amd64
+export OCP_USERNAME=kubeadmin
+export OCP_PASSWORD=qA8Hr-bGAeu-rbsAH-AzbpV
+# export OCP_TOKEN=<enter your token>
+export SERVER_ARGUMENTS="--server=${OCP_URL}"
+export LOGIN_ARGUMENTS="--username=${OCP_USERNAME} --password=${OCP_PASSWORD}"
+# export LOGIN_ARGUMENTS="--token=${OCP_TOKEN}"
+export CPDM_OC_LOGIN="cpd-cli manage login-to-ocp ${SERVER_ARGUMENTS} ${LOGIN_ARGUMENTS}"
+export OC_LOGIN="oc login ${OCP_URL} ${LOGIN_ARGUMENTS}"
+
+# ------------------------------------------------------------------------------
+# Projects
+# ------------------------------------------------------------------------------
+export PROJECT_CERT_MANAGER=ibm-cert-manager
+export PROJECT_LICENSE_SERVICE=ibm-licensing
+export PROJECT_SCHEDULING_SERVICE=cpd-scheduler
+export PROJECT_CPD_INST_OPERATORS=<enter your Cloud Pak for Data operator project>
+export PROJECT_CPD_INST_OPERANDS=<enter your Cloud Pak for Data operand project>
+# export PROJECT_CPD_INSTANCE_TETHERED=<enter your tethered project>
+# export PROJECT_CPD_INSTANCE_TETHERED_LIST=<a comma-separated list of tethered projects>
+
+# ------------------------------------------------------------------------------
+# Storage
+# ------------------------------------------------------------------------------
+export STG_CLASS_BLOCK=<RWO-storage-class-name>
+export STG_CLASS_FILE=<RWX-storage-class-name>
+
+# ------------------------------------------------------------------------------
+# IBM Entitled Registry
+# ------------------------------------------------------------------------------
+export IBM_ENTITLEMENT_KEY=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJJQk0gTWFya2V0cGxhY2UiLCJpYXQiOjE2NTA2NDE0NDAsImp0aSI6IjIyNDc4YzU2NGI5YjQzMjFhZGQ1OTFiZThkYTE0NzUyIn0.DjP--bsdDUoJLOuUkVZngs4GIfV-7iotGSjeyql4Cs8
+
+# ------------------------------------------------------------------------------
+# Private container registry
+# ------------------------------------------------------------------------------
+# Set the following variables if you mirror images to a private container registry.
+#
+# To export these variables, you must uncomment each command in this section.
+export PRIVATE_REGISTRY_LOCATION=bastion.privateocp.gbm.net:5000
+export PRIVATE_REGISTRY_PUSH_USER=admin
+export PRIVATE_REGISTRY_PUSH_PASSWORD=passw0rd
+export PRIVATE_REGISTRY_PULL_USER=admin
+export PRIVATE_REGISTRY_PULL_PASSWORD=passw0rd
+
+# ------------------------------------------------------------------------------
+# Cloud Pak for Data version
+# ------------------------------------------------------------------------------
+export VERSION=4.7.3
+
+# ------------------------------------------------------------------------------
+# Components
+# ------------------------------------------------------------------------------
+
+export COMPONENTS=ibm-cert-manager,ibm-licensing,scheduler,cpfs,cpd_platform
+# export COMPONENTS_TO_SKIP=<component-ID-1>,<component-ID-2>
+
+cpd-cli manage restart-container
+cpd-cli manage login-entitled-registry ${IBM_ENTITLEMENT_KEY}
+cpd-cli manage login-private-registry ${PRIVATE_REGISTRY_LOCATION} ${PRIVATE_REGISTRY_PUSH_USER} ${PRIVATE_REGISTRY_PUSH_PASSWORD}
+cpd-cli manage list-images --components=${COMPONENTS} --release=${VERSION} --inspect_source_registry=true
+cpd-cli manage mirror-images --components=${COMPONENTS} --release=${VERSION} --target_registry=${PRIVATE_REGISTRY_LOCATION} --case_download=false
+cpd-cli manage list-images --components=${COMPONENTS} --release=${VERSION} --target_registry=${PRIVATE_REGISTRY_LOCATION} --case_download=false
