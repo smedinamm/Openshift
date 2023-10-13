@@ -1,23 +1,28 @@
-# configuracion Inicial
-#ubuntu
-sudo apt update
-sudo apt install apache2-utils
-sudo apt install jq
-sudo apt install podman
-
-#RHEL
-sudo yum repolist
-sudo dnf list podman
-sudo dnf install -y podman
-sudo dnf install httpd-tools
-
+echo " ########## Bienvenido al script de ejecucion de instalador de Openshift en Azure (IaaS) #######"
+echo " Antes de iniciar recuerde descargar su archivo pullsecret en $HOME, guardelo con el nombre pullsecret.txt"
+read -p "Cuenta con su archivo en el directorio mencionado? "iniciar
+if [ $iniciar == no ]
+# Install paquetes
+typeset -l SO="$(cat /etc/os-release | grep NAME | cut -d'"' -f 2 | head -1)"
+if [ $SO == "ubuntu" ]; then
+  sudo apt update -y
+  sudo apt install apache2-utils -y
+  sudo apt install jq -y
+  sudo apt install podman -y
+elif [ $SO == "red hat enterprise linux server" ]; then
+  sudo yum repolist -y
+  sudo dnf list podman -y
+  sudo dnf install -y podman
+  sudo dnf install httpd-tools -y
+  sudo dnf install -y jq
+fi
+# Generar Keygen
 ssh-keygen -t ed25519 -N ''
-
+# creacion de directorios mirror
 export HOME_MIRROR=/home/azureuser/mirror
-
 sudo mkdir -p $HOME_MIRROR/registry/{auth,certs,data}
 sudo chown -R azureuser:azureuser $HOME_MIRROR
-
+# generacion de certificado 
 cat << 'EOF' > $HOME_MIRROR/registry/certs/cert.conf
 [ req ]
 default_bits = 2048
@@ -49,21 +54,24 @@ DNS.4 = registry.privateocp.gbm.net
 DNS.5 = bastion.privateocp.gbm.net
 IP.1 = 127.0.0.1
 EOF
-
 cd $HOME_MIRROR/registry/certs
 openssl req -newkey rsa:4096 -nodes -sha256 -keyout server.key -x509 -days 3650 -out server.crt -config cert.conf -extensions v3_req
+# crear htpasswd
 htpasswd -bBc $HOME_MIRROR/registry/auth/htpasswd admin passw0rd
+cd $HOME
 
+if [ $SO == "ubuntu" ]; then
+  sudo cp $HOME_MIRROR/registry/certs/server.crt /usr/local/share/ca-certificates/server.crt
+  sudo update-ca-certificates
+elif [ $SO == "red hat enterprise linux server" ]; then
+  sudo cp $HOME_MIRROR/registry/certs/server.crt /etc/pki/ca-trust/source/anchors/
+  sudo update-ca-trust
+fi
 podman run --name mirror-registry -p 5000:5000 -v $HOME_MIRROR/registry/data:/var/lib/registry:z -v $HOME_MIRROR/registry/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v $HOME_MIRROR/registry/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/server.crt -e REGISTRY_HTTP_TLS_KEY=/certs/server.key -d  docker.io/library/registry:2
 
-#ubuntu
-sudo cp $HOME_MIRROR/registry/certs/server.crt /usr/local/share/ca-certificates/server.crt
-sudo update-ca-certificates
-#RHEL
-sudo cp $HOME_MIRROR/registry/certs/server.crt /etc/pki/ca-trust/source/anchors/
-sudo update-ca-trust
+echo "#### Listado de Containers PODMAN ####"
+podman ps 
 
-## revisar si toca cambiarlo
 cat pullsecret.txt | jq . > pull-secret.json
 cat pull-secret.json
 
@@ -75,14 +83,22 @@ OCP_RELEASE=4.12.35
 LOCAL_REGISTRY='bastion.privateocp.gbm.net:5000'
 LOCAL_REPOSITORY='ocp4/openshift4'
 PRODUCT_REPO='openshift-release-dev'
-LOCAL_SECRET_JSON='/home/azureuser/pull-secret.json'
+LOCAL_SECRET_JSON='$HOME/pull-secret.json'
 RELEASE_NAME="ocp-release"
 ARCHITECTURE='x86_64'
 
-oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run
+# oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run
+oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}
 oc adm release extract -a ${LOCAL_SECRET_JSON} --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}"
 
-cat pull-secret.json | jq . -c
+cat pull-secret.json | jq . -c > install-config-pullsecret
+cat$HOME_MIRROR/registry/certs/server.crt > install-config-cert
+
+./openshift-install create install-config 
+
+echo " Ya ha culminado el proceso de creacion del Mirror, favor duplique su terminar y edite su archivo de instalacion install-config"
+read decisioninstall
+
 
 mkdir clustermdm
 cp install-config.yaml clustermdm
@@ -95,7 +111,11 @@ curl -u admin:passw0rd -k https://localhost:5000/v2/_catalog | jq . | less
 export MIRROR_REGISTRY_DNS=bastion.privateocp.gbm.net:5000
 export AUTH_FILE=/home/azureuser/pull-secret.json
 
-oc adm catalog mirror registry.redhat.io/redhat/redhat-operator-index:v4.12 ${MIRROR_REGISTRY_DNS}/olm-mirror --registry-config=${AUTH_FILE} --insecure
+#oc get catalogsources.operators.coreos.com -n openshift-marketplace --all
+#oc delete catalogsources.operators.coreos.com -n openshift-marketplace --all
+oc patch operatorhubs/cluster --type merge --patch '{"spec":{"sources":[{"disabled": true,"name": "community-operators"},{"disabled": true,"name": "certified-operators"},{"disabled": true,"name": "redhat-marketplace"},{"disabled": true,"name": "redhat-operators"}]}}'   
+
+nohup oc adm catalog mirror registry.redhat.io/redhat/redhat-operator-index:v4.12 ${MIRROR_REGISTRY_DNS}/olm-mirror --registry-config=${AUTH_FILE} --insecure & > nohup-mirror-operator.out
 
 
 
