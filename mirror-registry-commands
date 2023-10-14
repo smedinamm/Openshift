@@ -91,16 +91,16 @@ cp pull-secret.json $XDG_RUNTIME_DIR/containers/auth.json
 REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json
 
 OCP_RELEASE=4.12.35
-LOCAL_REGISTRY='$HOSTNAME.$pvdns:5000'
+LOCAL_REGISTRY=$HOSTNAME.$pvdns:5000
 LOCAL_REPOSITORY='ocp4/openshift4'
 PRODUCT_REPO='openshift-release-dev'
-LOCAL_SECRET_JSON='$HOME/pull-secret.json'
+LOCAL_SECRET_JSON=$HOME/pull-secret.json
 RELEASE_NAME="ocp-release"
 ARCHITECTURE='x86_64'
 
 # oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run
-#oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}
-#oc adm release extract -a ${LOCAL_SECRET_JSON} --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}"
+oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}
+oc adm release extract -a ${LOCAL_SECRET_JSON} --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}"
 }
 
 if [ $iniciar == "si" ]; then
@@ -195,7 +195,7 @@ OCP_RELEASE=4.12.35
 LOCAL_REGISTRY='bastion.privateocp.gbm.net:5000'
 LOCAL_REPOSITORY='ocp4/openshift4'
 PRODUCT_REPO='openshift-release-dev'
-LOCAL_SECRET_JSON='$HOME/pull-secret.json'
+LOCAL_SECRET_JSON=$HOME/pull-secret.json
 RELEASE_NAME="ocp-release"
 ARCHITECTURE='x86_64'
 
