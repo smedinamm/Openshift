@@ -27,8 +27,14 @@ ssh-keygen -t ed25519 -N ''
 export HOME_MIRROR=/home/azureuser/mirror
 sudo mkdir -p $HOME_MIRROR/registry/{auth,certs,data}
 sudo chown -R azureuser:azureuser $HOME_MIRROR
+
+echo " ingrese el private dns zone de su bastion \n"
+read -p "private DNS Zone: " pvdns
+echo $pvdns
+rightpvdns="$pvdns"
+rightHOSTNAME="$HOSTNAME"
 # generacion de certificado 
-cat << 'EOF' > $HOME_MIRROR/registry/certs/cert.conf
+cat << EOF > $HOME_MIRROR/registry/certs/cert.conf
 [ req ]
 default_bits = 2048
 default_keyfile = key.pem
@@ -54,9 +60,9 @@ authorityKeyIdentifier = keyid,issuer
 [ alt_names ]
 DNS.1 = localhost
 DNS.2 = registry
-DNS.3 = bastion
-DNS.4 = registry.privateocp.gbm.net
-DNS.5 = bastion.privateocp.gbm.net
+DNS.3 = $rightHOSTNAME
+DNS.4 = registry.$rightpvdns
+DNS.5 = $rightHOSTNAME.$rightpvdns
 IP.1 = 127.0.0.1
 EOF
 cd $HOME_MIRROR/registry/certs
@@ -74,18 +80,18 @@ elif [ $SO == "red hat enterprise linux server" ]; then
 fi
 podman run --name mirror-registry -p 5000:5000 -v $HOME_MIRROR/registry/data:/var/lib/registry:z -v $HOME_MIRROR/registry/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v $HOME_MIRROR/registry/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/server.crt -e REGISTRY_HTTP_TLS_KEY=/certs/server.key -d  docker.io/library/registry:2
 
-echo "#### Listado de Containers PODMAN ####"
+echo "#### Listado de Containers PODMAN ####\n ################################\n"
 podman ps 
 
 cat pullsecret.txt | jq . > pull-secret.json
 cat pull-secret.json
 
-podman login --authfile pull-secret.json bastion.privateocp.gbm.net:5000 --username admin --password passw0rd
+podman login --authfile pull-secret.json $HOSTNAME.$pvdns:5000 --username admin --password passw0rd
 cp pull-secret.json $XDG_RUNTIME_DIR/containers/auth.json
 REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json
 
 OCP_RELEASE=4.12.35
-LOCAL_REGISTRY='bastion.privateocp.gbm.net:5000'
+LOCAL_REGISTRY='$HOSTNAME.$pvdns:5000'
 LOCAL_REPOSITORY='ocp4/openshift4'
 PRODUCT_REPO='openshift-release-dev'
 LOCAL_SECRET_JSON='$HOME/pull-secret.json'
