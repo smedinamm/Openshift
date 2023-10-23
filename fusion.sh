@@ -194,9 +194,9 @@ spec:
     source: cp.icr.io/cp/ibm-ceph
 EOF
 
-oc apply -f catalogsource-redhat-operators.yaml
+oc apply -f imagecontentsourcepolicy-icsp.yaml
 
-cat << EOF > imagecontentsourcepolicy-icsp.yaml
+cat << EOF > catalogsource-redhat-operators.yaml
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
