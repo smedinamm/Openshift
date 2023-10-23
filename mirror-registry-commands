@@ -14,7 +14,7 @@ if [ $SO == "ubuntu" ]; then
   sudo apt install apache2-utils -y
   sudo apt install jq -y
   sudo apt install podman -y
-elif [ $SO == "RHEL" ]; then
+elif [ $SO == "rhel" ]; then
   sudo yum repolist -y
   sudo dnf list podman -y
   sudo dnf install -y podman
