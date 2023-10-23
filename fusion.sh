@@ -1,3 +1,4 @@
+#!/bin/bash
 #### Entitlement key
 mkdir fusion
 cd fusion
