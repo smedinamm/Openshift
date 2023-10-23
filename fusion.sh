@@ -1,11 +1,12 @@
 #### Entitlement key
 mkdir fusion
 cd fusion
-ekey=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJJQk0gTWFya2V0cGxhY2UiLCJpYXQiOjE2NTA2NDE0NDAsImp0aSI6IjIyNDc4YzU2NGI5YjQzMjFhZGQ1OTFiZThkYTE0NzUyIn0.DjP--bsdDUoJLOuUkVZngs4GIfV-7iotGSjeyql4Cs8
+ekey=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJJQk0gTWFya2V0cGxhY2UiLCJpYXQiOjE2OTYzNTAzNjQsImp0aSI6IjFmZjcyYmExMzU3NzQzMTFiMGI4YTdjNWU3MDQwYmViIn0.vxK0jmaP7FEv_HeEZ_zLfU0IERFRgnkOWYy9LyMFGwk
 entitlementkey=$(echo -n "cp:$ekey" | base64 -w0)
 rightekey="$ekey"
 rightentitlementkey="$entitlementkey"
 echo $rightentitlementkey
+typeset -l SO="$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)"
 
 cat << EOF > authority.json
 {
@@ -18,30 +19,32 @@ EOF
 oc get secret/pull-secret -n openshift-config -ojson | jq -r '.data[".dockerconfigjson"]' | base64 -d - | jq '.[]."cp.icr.io" += input' - authority.json > temp_config.json
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=temp_config.json
 oc get secret/pull-secret -n openshift-config -ojson | jq -r '.data[".dockerconfigjson"]' | base64 -d -
-rm authority.json temp_config.json
 
+if [ $SO == "ubuntu" ]; then
+  sudo apt install skopeo -y
+elif [ $SO == "rhel" ]; then
+  sudo dnf -y install skopeo
+fi
+
+wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/latest-4.12/opm-linux-4.12.39.tar.gz
+tar -xvf opm-linux-4.12.39.tar.gz
 
 ###
-
+cd ..
 podman login registry.redhat.io --authfile pull-secret.json
-podman login cp.icr.io -u cp -p <your entitlement key>
+podman login cp.icr.io -u cp -p $ekey
 
-export LOCAL_SECRET_JSON='<absolute path to pull-secret.json>'
-export LOCAL_ISF_REGISTRY="<Your enterprise registry host>:<port>"
-export LOCAL_ISF_REPOSITORY="<Your image path>"
+export LOCAL_SECRET_JSON='/home/azureuser/pull-secret.json'
+export LOCAL_ISF_REGISTRY="bastion.privateocp.gbm.net:5000"
+export LOCAL_ISF_REPOSITORY="fusion-mirror"
+
 IFS='/' read -r NAMESPACE PREFIX <<< "$LOCAL_ISF_REPOSITORY"
 if [[ "$PREFIX" != "" ]]; then export TARGET_PATH="$LOCAL_ISF_REGISTRY/$NAMESPACE/$PREFIX";  export REPO_PREFIX=$(echo "$PREFIX"| sed -r 's/\//-/g')-; else export TARGET_PATH="$LOCAL_ISF_REGISTRY/$NAMESPACE"; export REPO_PREFIX=""; fi
 #verify both variables set correctly
 echo "$TARGET_PATH"
 echo "$REPO_PREFIX"
 
-export LOCAL_ISF_REGISTRY="registryhost.com"
-
-export LOCAL_SECRET_JSON='/home/mirror/pull-secret.json'
-export LOCAL_ISF_REGISTRY="registryhost.com:443"
-export LOCAL_ISF_REPOSITORY="fusion-mirror"
-
-docker login $LOCAL_ISF_REGISTRY -u <your enterprise registry username> -p <your enterprise registry password>
+podman login $LOCAL_ISF_REGISTRY -u admin -p passw0rd
 
 skopeo copy --all docker://cp.icr.io/cp/isf-sds/fusion-ui@sha256:769a525d83b782b7a149a40e2625f2b1ac51f291c3531a09a1e292f3e9dd97f6 docker://$TARGET_PATH/fusion-ui@sha256:769a525d83b782b7a149a40e2625f2b1ac51f291c3531a09a1e292f3e9dd97f6
 skopeo copy --all docker://cp.icr.io/cp/isf-sds/isf-application-operator@sha256:bba8f2756cad3b18f792bee8d51d662c471df1bfb0ec91e32787a05cb362a5c8 docker://$TARGET_PATH/isf-application-operator@sha256:bba8f2756cad3b18f792bee8d51d662c471df1bfb0ec91e32787a05cb362a5c8
@@ -62,6 +65,8 @@ skopeo copy --all docker://cp.icr.io/cpopen/isf-operator-software-bundle@sha256:
 skopeo copy --all docker://registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:63482c91717cb5acdf2734bce6ebadd43c6159c6116b6a2a581f4135873ad0dd docker://$TARGET_PATH/openshift4/ose-kube-rbac-proxy@sha256:63482c91717cb5acdf2734bce6ebadd43c6159c6116b6a2a581f4135873ad0dd
 skopeo copy --all docker://cp.icr.io/cpopen/isf-operator-software-catalog:2.6.1 docker://$TARGET_PATH/isf-operator-software-catalog:2.6.1
 
+
+cat << EOF > imagecontentpolicy-fusion.yaml
 apiVersion: operator.openshift.io/v1alpha1 
 kind: ImageContentSourcePolicy 
 metadata: 
@@ -76,4 +81,25 @@ spec:
     source: icr.io/cpopen 
   - mirrors: 
     - $TARGET_PATH/openshift4 
-    source: registry.redhat.io/openshift4 
+    source: registry.redhat.io/openshift4
+EOF
+
+oc apply -f imagecontentpolicy-fusion.yaml
+
+cat << EOF > catalog-source-fusion.yaml
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: isf-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: ISF Catalog
+  image: bastion.privateocp.gbm.net:5000/fusion-mirror/isf-operator-software-catalog:2.6.1
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 30m0s
+EOF
+
+oc apply -f catalog-source-fusion.yaml
