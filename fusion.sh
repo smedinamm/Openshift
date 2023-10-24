@@ -215,7 +215,7 @@ spec:
 
 opm index prune -f registry.redhat.io/redhat/redhat-operator-index:v4.10 -p amq-streams -t "$TARGET_PATH"/data-cataloging-redhat-operator-index:v4.10
 podman push "$TARGET_PATH"/data-cataloging-redhat-operator-index:v4.10
-oc adm catalog mirror -a "$LOCAL_SECRET_JSON" "$TARGET_PATH"/data-cataloging-redhat-operator-index:v4.10 "$TARGET_PATH" --index-filter-by-os='linux/amd64'
+nohup oc adm catalog mirror -a "$LOCAL_SECRET_JSON" "$TARGET_PATH"/data-cataloging-redhat-operator-index:v4.10 "$TARGET_PATH" --index-filter-by-os='linux/amd64' &
 oc apply -f ImageContentSourcePolicy.yaml
 
 skopeo copy --all docker://icr.io/cpopen/db2u-operator@sha256:b8a70a044e5c0217f43e945231bd5c18b06f35d29e1602083a9a84de175422af docker://$TARGET_PATH/db2u-operator@sha256:b8a70a044e5c0217f43e945231bd5c18b06f35d29e1602083a9a84de175422af
