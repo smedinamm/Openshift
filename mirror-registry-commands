@@ -227,7 +227,7 @@ export AUTH_FILE=/home/azureuser/pull-secret.json
 #oc delete catalogsources.operators.coreos.com -n openshift-marketplace --all
 oc patch operatorhubs/cluster --type merge --patch '{"spec":{"sources":[{"disabled": true,"name": "community-operators"},{"disabled": true,"name": "certified-operators"},{"disabled": true,"name": "redhat-marketplace"},{"disabled": true,"name": "redhat-operators"}]}}'   
 
-nohup oc adm catalog mirror registry.redhat.io/redhat/redhat-operator-index:v4.12 ${MIRROR_REGISTRY_DNS}/olm-mirror --registry-config=${AUTH_FILE} --insecure & > nohup-mirror-operator.out
+nohup oc adm catalog mirror registry.redhat.io/redhat/redhat-operator-index:v4.12 ${MIRROR_REGISTRY_DNS}/olm-mirror --registry-config=${AUTH_FILE} --insecure --index-filter-by-os='linux/amd64' & > nohup-mirror-operator.out
 
 
 
