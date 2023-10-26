@@ -1,7 +1,7 @@
 #!/bin/bash
 #### Entitlement key
-mkdir fusion
-cd fusion
+mkdir fusion3
+cd fusion3
 ekey=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJJQk0gTWFya2V0cGxhY2UiLCJpYXQiOjE2OTYzNTAzNjQsImp0aSI6IjFmZjcyYmExMzU3NzQzMTFiMGI4YTdjNWU3MDQwYmViIn0.vxK0jmaP7FEv_HeEZ_zLfU0IERFRgnkOWYy9LyMFGwk
 entitlementkey=$(echo -n "cp:$ekey" | base64 -w0)
 rightekey="$ekey"
