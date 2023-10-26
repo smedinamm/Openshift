@@ -47,7 +47,6 @@ if [[ "$PREFIX" != "" ]]; then export TARGET_PATH="$LOCAL_ISF_REGISTRY/$NAMESPAC
 echo "$TARGET_PATH"
 echo "$REPO_PREFIX"
 
-podman login $LOCAL_ISF_REGISTRY -u admin -p passw0rd
 ## storage fusion
 skopeo copy --all docker://cp.icr.io/cp/isf-sds/fusion-ui@sha256:769a525d83b782b7a149a40e2625f2b1ac51f291c3531a09a1e292f3e9dd97f6 docker://$TARGET_PATH/fusion-ui@sha256:769a525d83b782b7a149a40e2625f2b1ac51f291c3531a09a1e292f3e9dd97f6
 skopeo copy --all docker://cp.icr.io/cp/isf-sds/isf-application-operator@sha256:bba8f2756cad3b18f792bee8d51d662c471df1bfb0ec91e32787a05cb362a5c8 docker://$TARGET_PATH/isf-application-operator@sha256:bba8f2756cad3b18f792bee8d51d662c471df1bfb0ec91e32787a05cb362a5c8
