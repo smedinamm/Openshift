@@ -37,7 +37,7 @@ export LOCAL_SECRET_JSON='/home/azureuser/pull-secret.json'
 export LOCAL_ISF_REGISTRY="bastion.privateocp.gbm.net:5000"
 export LOCAL_ISF_REPOSITORY="fusion-mirror"
 
-podman login registry.redhat.io --authfile pull-secret.json
+podman login registry.redhat.io --authfile $HOME/pull-secret.json
 podman login cp.icr.io -u cp -p $ekey
 podman login $LOCAL_ISF_REGISTRY -u admin -p passw0rd
 
