@@ -1,7 +1,7 @@
 mkdir -p $HOME/cdp-cli
 cd $HOME/cdp-cli
-wget https://github.com/IBM/cpd-cli/releases/download/v13.0.3/cpd-cli-linux-EE-13.0.3.tgz
-tar -xvf cpd-cli-linux-EE-13.0.3.tgz
+wget https://github.com/IBM/cpd-cli/releases/download/v13.0.3/cpd-cli-linux-EE-13.0.4.tgz
+tar -xvf cpd-cli-linux-EE-13.0.4.tgz
 export PATH=$HOME/cdp-cli/cpd-cli-linux-EE-13.0.3-40:$PATH
 export CPD_CLI_MANAGE_WORKSPACE=$HOME/cpd-cli-workspace
 
