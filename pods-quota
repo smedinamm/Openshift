@@ -1,0 +1,4 @@
+pods=(`oc get pods -A | awk '{print $1 " " $2 " " $4}' | tail -n +2 | grep -v Completed`)
+for ((i=0; i < ${#pods[@]}; i=i+3)); do
+        echo "$(oc get pod ${pods[$i+1]} -o jsonpath='{range .items[*]}{"Ns:"}{.metadata.namespace}{" Name:"}{.metadata.name}{" Memlimit:"}{.spec.containers[].resources.limits.memory}{" Memreq:"}{.spec.containers[].resources.requests.memory}{" CPUlimit:"}{.spec.containers[].resources.limits.cpu}{" CPUreq:"}{.spec.containers[].resources.requests.cpu}' -n ${pods[i]})" "$(oc adm top pod ${pods[i+1]} -n ${pods[i]} | tail -n +2 | awk '{print " | CPUuso:" $2 " MEMuso:" $3}')"
+done
