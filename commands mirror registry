@@ -6,3 +6,20 @@
 # podman generate systemd --new --files --name my-pod
 # mover archivo /etc/systemd/system
 # systemctl enable pod-my-pod.service
+
+
+export MIRROR_REGISTRY_DNS=ansible.apicdev.os.qa.bi.com.gt:5000
+export AUTH_FILE=/root/pull-secret.json
+  
+oc adm catalog mirror icr.io/instana/agent ${MIRROR_REGISTRY_DNS}/instana/agent --registry-config=${AUTH_FILE} --insecure
+export LOCAL_REGISTRY=ansible.apicdev.os.qa.bi.com.gt:5000
+
+oc image mirror icr.io/instana/agent:latest=${LOCAL_REGISTRY}/icr.io/instana/agent:latest --registry-config /root/pull-secret.json
+
+ansible.apicdev.os.qa.bi.com.gt:5000/icr.io/instana/agent
+  image:
+    # agent.image.name is the name of the container image of the Instana agent.
+    name: ansible.apicdev.os.qa.bi.com.gt:5000/icr.io/instana/agent
+
+helm install instana-agent --namespace instana-agent -f ./values.yml
+ like 1
