@@ -22,4 +22,32 @@ ansible.apicdev.os.qa.bi.com.gt:5000/icr.io/instana/agent
     name: ansible.apicdev.os.qa.bi.com.gt:5000/icr.io/instana/agent
 
 helm install instana-agent --namespace instana-agent -f ./values.yml
- like 1
+
+
+#######################
+copiar desde repositorio externo a interno
+oc image mirror gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner:v4.0.2=${LOCAL_REGISTRY}/gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner:v4.0.2 --registrg pull-secret.json
+#####
+para descargar en local
+podman pull gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner@sha256:63d5e04551ec8b5aae83b6f35938ca5ddc50a88d85492d9731810c31591fa4c9
+azureuser@Bastion:~$ podman images
+REPOSITORY                                                                           TAG         IMAGE ID      CREATED       SIZE
+icr.io/cpopen/cpd/olm-utils-v2                                                       latest      d8cb6b6b6b01  4 weeks ago   769 MB
+<none>                                                                               <none>      82d47243bef4  7 weeks ago   766 MB
+bastion.privateocp.gbm.net:5000/fusion-mirror/data-cataloging-redhat-operator-index  v4.12       23d6be206512  2 months ago  130 MB
+<none>                                                                               <none>      52257ca5a477  2 months ago  71 MB
+quay.io/operator-framework/opm                                                       latest      ea6f0f05d56b  2 months ago  71 MB
+<none>                                                                               <none>      9daca45a0b9d  2 months ago  888 MB
+docker.io/library/registry                                                           2           ff1857193a0b  2 months ago  26 MB
+cp.icr.io/cpopen/cpfs/ibm-pak                                                        v1.10.0     0e5aac0b8b20  4 months ago  214 MB
+gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner                       <none>      932b0bface75  2 years ago   45.1 MB
+
+azureuser@Bastion:~$ podman save -o image.tar 932b0bface75
+Copying blob 1a5ede0c966b done
+Copying blob ad321585b8f5 done
+Copying config 932b0bface done
+Writing manifest to image destination
+Storing signatures
+######
+copiar desde archivo
+skopeo copy docker-archive:./image.tar docker://bastion.privateocp.gbm.net:5000/gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner:4
